@@ -37,6 +37,7 @@ export default function Login() {
         console.log("Login successfully");
         isCorrect = true;
         setLoginStatus({ name: accPWD.account, isLogin: true });
+        navigate("/chat")
       }
     }
     //login failed
