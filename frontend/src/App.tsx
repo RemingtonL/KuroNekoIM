@@ -12,7 +12,7 @@ function ProtectedRoute({ children }: { children: React.ReactNode }) {
   const isLogin = useLoginStatus((s) => s.loginInfo.isLogin);
 
   if (!isLogin) {
-    return <Navigate to="/login" replace />
+    return <Navigate to="/login" replace />;
   }
 
   return children;

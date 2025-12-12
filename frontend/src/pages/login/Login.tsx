@@ -5,9 +5,9 @@ import {
   Button,
   InputNumber,
   Avatar,
+  Message
 } from "@arco-design/web-react";
 import { IconUser } from "@arco-design/web-react/icon";
-import { accountAndPwd } from "./AccountAndPassword";
 import { Navigate, useNavigate } from "react-router-dom";
 import { useInputValue } from "../../store/loginInput";
 import { useLoginStatus } from "../../store/loginStatus";
@@ -26,25 +26,28 @@ export default function Login() {
   }
 
   //process the login
-  const handleChange = (inputValue: InputValue) => {
-    let isCorrect = false;
-    for (const accPWD of accountAndPwd) {
-      //login succeed
-      if (
-        accPWD.account === inputValue.account &&
-        accPWD.password === inputValue.password
-      ) {
-        console.log("Login successfully");
-        isCorrect = true;
-        setLoginStatus({ name: accPWD.account, isLogin: true });
-        navigate("/chat")
-      }
-    }
-    //login failed
-    if (!isCorrect) {
-      console.log("Wrong Password or Account");
-    }
+  const  handleChange = async (inputValue: InputValue) => {
     setInput(inputValue);
+    const res = await fetch("http://127.0.0.1:8000/login",{ //await 会在这里“停下来”，等服务器回应。
+      method:"POST",
+      headers:{
+        "Content-Type":"application/json",
+      },
+      body: JSON.stringify(inputValue) //body这里是真正要发送的数据，这一步把数据转换成JSON
+    })
+
+    if (!res.ok){ //状态码在 200–299 时为 true，为false的时候就是出事了
+      Message.error("Server error")
+      return
+    }
+     const data: { ok: boolean; name?: string; token?: string } = await res.json(); //这一步解析回复，从JSON转换成对象
+    if (data.ok && data.name){
+      setLoginStatus({ name: data.name, isLogin: true })
+      navigate("/chat")
+    }
+    else{
+      console.log("Login failed")
+    }
   };
   return (
     <>

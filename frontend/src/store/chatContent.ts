@@ -7,10 +7,10 @@ export interface ChatInfo{
 
 interface ChatContent{
     chatInfo:ChatInfo[]
-    addChatContent:(state:ChatInfo)=>(void)
+    setChatContent:(state:ChatInfo[])=>(void)
 }
 
 export const useChatContent = create<ChatContent>((set)=>({
     chatInfo:[] as ChatInfo[],
-    addChatContent:(msg)=>(set((state)=>({chatInfo:[...state.chatInfo,msg]})))
+    setChatContent:(msgs)=>(set(()=>({chatInfo:[...msgs]})))
 }))

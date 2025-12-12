@@ -3,9 +3,10 @@ import { Layout, Menu, Avatar, Input, Badge } from "@arco-design/web-react";
 import { IconUser } from "@arco-design/web-react/icon";
 import { useLoginStatus } from "../../store/loginStatus";
 import { useChatSelect } from "../../store/chatSelect";
-import { useChatInput } from "../../store/chatInput";
+import { useChatInput, ChatRespond } from "../../store/chatInput";
 import "./Chat.css";
-import { useChatContent, ChatInfo } from "../../store/chatContent";
+import { ChatInfo, useChatContent } from "../../store/chatContent";
+
 export default function Chat() {
   const MenuItem = Menu.Item;
   const SubMenu = Menu.SubMenu;
@@ -13,23 +14,21 @@ export default function Chat() {
   const Content = Layout.Content;
   const collapsedWidth = 60;
   const normalWidth = 220;
-  const onlineUsers = ["admin", "ZZZ", "114514","1918","Senbai"]; //list for online users
-
+  const onlineUsers = ["admin", "ZZZ", "114514", "1918", "Senbai"]; //list for online users
 
   //who has login
   const isLogin = useLoginStatus((State) => State.loginInfo.isLogin);
   const name = useLoginStatus((State) => State.loginInfo.name);
-  let onlineFriends :string[] = []
-  for (const user of onlineUsers){
-    if (user !== name){
-      onlineFriends.push(user)
+  let onlineFriends: string[] = [];
+  for (const user of onlineUsers) {
+    if (user !== name) {
+      onlineFriends.push(user);
     }
   }
 
   const [collapsed, setCollapsed] = useState(false);
   const [siderWidth, setSiderWidth] = useState(normalWidth);
 
- 
   const onCollapse = (collapsed: boolean) => {
     setCollapsed(collapsed);
     setSiderWidth(collapsed ? collapsedWidth : normalWidth);
@@ -46,11 +45,22 @@ export default function Chat() {
     }
   };
 
-  //select who to have a chat
+  //select who to have a chat, read the msg list from backend everytime click
   const selectedChat = useChatSelect((State) => State.selected);
   const setSelectedChat = useChatSelect((State) => State.setSelected);
-  const onClickChat = (user: string) => {
+  const onClickChat = async (user: string) => {
     setSelectedChat(user);
+    if (name) {
+      const url = new URL("http://127.0.0.1:8000/chat/history");
+      url.searchParams.set("name", name);
+      url.searchParams.set("selectedChat", user);
+      const res = await fetch(url.toString(), {
+        method: "get",
+      });
+      const resJson = await res.json();
+      const data = resJson as ChatInfo[];
+      setMsg(data);
+    }
   };
 
   //input text
@@ -63,16 +73,26 @@ export default function Chat() {
 
   //read Message list
   const msgList = useChatContent((state) => state.chatInfo);
-  const addMsg = useChatContent((state) => state.addChatContent);
-  const sendMsg = () => {
-    //需要一个全局的消息列表为State，每次更新往里面加消息然后重新渲染
+  const setMsg = useChatContent((state) => state.setChatContent);
+  const sendMsg = async () => {
+    //需要一个全局的消息列表为State，每次从后端获取历史消息并且跟后端存消息
     const msg: ChatInfo = {
       sender: name,
       receiver: selectedChat,
       content: textInput,
     };
-    addMsg(msg);
-    setTextInput("");
+
+    const res = await fetch("http://127.0.0.1:8000/chat", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(msg),
+    });
+    const resJson = await res.json();
+    const data = resJson as ChatRespond;
+    if (data.ok) {
+      setMsg(data.msgList); //use the zustand state as a buffer,read the msg history and set it
+      setTextInput("");
+    }
   };
 
   return (
@@ -126,17 +146,6 @@ export default function Chat() {
         >
           {selectedChat ? ( //only show when someone has been selected
             <div className="chat-window">
-              <div className="message left">
-                <Avatar size={32}>{selectedChat}</Avatar>
-                <div className="bubble bubble-left">
-                  你好，我是 {selectedChat}
-                </div>
-              </div>
-
-              <div className="message right">
-                <div className="bubble bubble-right">你好，我是 {name}</div>
-                <Avatar size={32}>{name}</Avatar>
-              </div>
               {/* show the message list */}
               {msgList.map((msg, index) =>
                 msg.sender === name && msg.receiver === selectedChat ? (
