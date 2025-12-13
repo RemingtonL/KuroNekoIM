@@ -1,57 +1,102 @@
 import "@arco-design/web-react/dist/css/arco.css";
-import { Form, Input, Button, InputNumber } from "@arco-design/web-react";
+import { Form, Input, Button, Modal } from "@arco-design/web-react";
 import { accountAndPwd } from "../login/AccountAndPassword.js";
 import { useInputValue } from "../../store/loginInput";
+import { useState } from "react";
 
 const FormItem = Form.Item;
+
 export default function Register() {
   const [form] = Form.useForm();
   const setInput = useInputValue((State) => State.setValue);
+  const [isAccRepeated, setAccRepeated] = useState(false);
+  const [isPwdRepeated, setPwdRepeated] = useState(false);
+  const [visible, setVisible] = useState(false);
+
   interface InputValue {
-    account:string,
-    pwd1:string
-    pwd2:string
+    email: string;
+    password1: string;
+    password2: string;
+    account: string;
   }
-  const handleChange = (inputValue: InputValue) => {
-    // setValue(inputValue);
-    for (const accPWD of accountAndPwd) {
-      if (
-        accPWD.account === inputValue.account
-      ) {
-        console.log("This email address have aleady been used");
-        break
+  interface RegisterRespond {
+    ok: boolean;
+    isAccRepeated: boolean;
+    isPwdRepeated: boolean;
+  }
+  const handleSubmit = async (inputValue: InputValue) => {
+    setInput(inputValue);
+    const res = await fetch("http://127.0.0.1:8000/register", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(inputValue),
+    });
+    const data = (await res.json()) as RegisterRespond;
+    if (data.ok) {
+      setAccRepeated(data.isAccRepeated);
+      setPwdRepeated(data.isPwdRepeated);
+      if (data.isAccRepeated || data.isPwdRepeated) {
+        setVisible(true);
       }
     }
-      if (inputValue.pwd1 === inputValue.pwd2){
-        console.log("Newly add the account" + inputValue.account + " " + inputValue.pwd1)
-      }
-      else{
-        console.log("password does not match")
-      }
-    // 往账号密码内写入
-    
   };
+
   return (
-    <Form
-      form={form}
-      style={{ width: 600 }}
-      autoComplete="off"
-      onSubmit={handleChange}
-    >
-      <FormItem label="E-mail address" field="account" rules={[{ required: true }]}>
-        <Input type = "email" placeholder="please enter your E-mail address" />
-      </FormItem>
-      <FormItem label="password" field="pwd1" rules={[{ required: true }]}>
-        <Input placeholder="please enter your password" type="password" />
-      </FormItem>
-      <FormItem label="password" field="pwd2" rules={[{ required: true }]}>
-        <Input placeholder="please enter your password" type="password" />
-      </FormItem>
-      <FormItem wrapperCol={{ offset: 5 }}>
-        <Button type="primary" htmlType="submit" style={{ marginRight: 24 }}>
-          Register
-        </Button>
-      </FormItem>
-    </Form>
+    <>
+      <Modal
+        title="Modal Title"
+        visible={visible}
+        onOk={() => setVisible(false)}
+        onCancel={() => setVisible(false)}
+        autoFocus={false}
+        focusLock={true}
+        cancelText="cancel"
+        okText="OK"
+      >
+        {isAccRepeated ? (
+          <p>account name already exist</p>
+        ) : isPwdRepeated ? (
+          <p>e-mail address already exist</p>
+        ) : isAccRepeated && isPwdRepeated ? (
+          <p>account name and e-mail address already exist</p>
+        ) : null}
+      </Modal>
+      <Form
+        form={form}
+        style={{ width: 600 }}
+        autoComplete="off"
+        onSubmit={handleSubmit}
+      >
+        <FormItem
+          label="E-mail address"
+          field="email"
+          rules={[{ required: true }]}
+        >
+          <Input type="email" placeholder="please enter your E-mail address" />
+        </FormItem>
+        <FormItem label="account" field="account" rules={[{ required: true }]}>
+          <Input placeholder="please enter your account" />
+        </FormItem>
+        <FormItem
+          label="password"
+          field="password1"
+          rules={[{ required: true }]}
+        >
+          <Input placeholder="please enter your password" type="password" />
+        </FormItem>
+        <FormItem
+          label="password"
+          field="password2"
+          rules={[{ required: true }]}
+        >
+          <Input placeholder="please enter your password" type="password" />
+        </FormItem>
+        <FormItem wrapperCol={{ offset: 5 }}>
+          <Button type="primary" htmlType="submit" style={{ marginRight: 24 }}>
+            Register
+          </Button>
+        </FormItem>
+      </Form>
+    </>
   );
 }

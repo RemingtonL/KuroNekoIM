@@ -1,15 +1,61 @@
 from fastapi import APIRouter
-from app.schemas.register import RegisterForm
+from app.schemas.register import RegisterForm, RegisterRespond
+import os, smtplib
+from email.message import EmailMessage
 
-router = APIRouter(tag=["register"])
+router = APIRouter(tags=["register"])
 AccAndPwds = [
-    {"account": "admin", "password": "admin"},
-    {"account": "ZZZ", "password": "ZZZ"},
-    {"account": "114514", "password": "114514"},
-    {}
+    {
+        "account": "admin",
+        "password": "admin",
+        "email": "admin@gmail.com",
+        "isVerified": True,
+    },
+    {"account": "ZZZ", "password": "ZZZ", "email": "zzz@gmail.com", "isVerified": True},
+    {
+        "account": "114514",
+        "password": "114514",
+        "email": "114514@gmail.com",
+        "isVerified": True,
+    },
 ]
+SMTP_HOST = "smtp.gmail.com"
+SMTP_PORT = 587
+SMTP_USER = "l1037092456@gmail.com"  # 你的邮箱
+SMTP_PASS = "tedhqircjygusbvn"
+
+
+def send_verify_email(to_email: str, verify_url: str):
+    msg = EmailMessage()
+    msg["Subject"] = "Verify your account"
+    msg["From"] = SMTP_USER
+    msg["To"] = to_email
+    msg.set_content(
+        f"Click to verify your account:\n{verify_url}\nThis link expires in 1 hour."
+    )
+
+    with smtplib.SMTP(SMTP_HOST, SMTP_PORT) as s:
+        s.starttls()
+        s.login(SMTP_USER, SMTP_PASS)
+        s.send_message(msg)
+
 
 @router.post("/register")
-async def register(registerForm:RegisterForm):
+async def register(registerForm: RegisterForm):
+    isAccRepeated = False
+    isPwdRepeated = False
     for AccAndPwd in AccAndPwds:
-        if 
+        if AccAndPwd["account"] == registerForm.account:
+            isAccRepeated = True
+        elif AccAndPwd["email"] == registerForm.email:
+            isPwdRepeated = True
+    # send mail to verify
+    token = "verified"
+    if isAccRepeated == False and isAccRepeated == False:
+        send_verify_email(
+            to_email="1037092456@qq.com",
+            verify_url=f"http://127.0.0.1:8000/verify?token={token}",
+        )
+    return RegisterRespond(
+        ok=True, isAccRepeated=isAccRepeated, isPwdRepeated=isPwdRepeated
+    )
