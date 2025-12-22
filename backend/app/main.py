@@ -1,10 +1,14 @@
 from fastapi import FastAPI
+from fastapi.staticfiles import StaticFiles
 from app.api import login, chat, register
-
+from pathlib import Path
 from fastapi.middleware.cors import CORSMiddleware
 
 app = FastAPI()
+UPLOAD_DIR = Path(__file__).resolve().parent / "uploads"
+UPLOAD_DIR.mkdir(parents=True, exist_ok=True)
 
+app.mount("/uploads", StaticFiles(directory=str(UPLOAD_DIR)), name="uploads")
 origins = [
     "http://localhost:5173",
     "http://127.0.0.1:5173",

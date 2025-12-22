@@ -116,3 +116,32 @@
 .chat-input .arco-input-wrapper {
   width: 100%;
 }
+.bubble-image {
+  padding: 6px;                /* 想要细边框就留一点 */
+  background: transparent;      /* 或者沿用气泡色也行 */
+}
+
+/* ✅ 核心：图片在气泡内自适应 */
+.chat-img {
+  display: block;              /* 消除 img 底部空隙 */
+  max-width: 100%;             /* 不超过气泡宽度 */
+  height: auto;                /* 保持比例 */
+  max-height: 420px;           /* 关键：限制最大高度，防止太高 */
+  object-fit: contain;         /* 保持完整显示，不裁切 */
+  border-radius: 14px;         /* 图片本身圆角 */
+}
+
+/* 可选：让图片更“卡片感” */
+.bubble-image .chat-img {
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.28);
+}
+
+/* 可选：鼠标 hover 提示可点 */
+.chat-img {
+  cursor: pointer;
+  transition: transform 0.12s ease;
+}
+
+.chat-img:hover {
+  transform: scale(1.01);
+}

@@ -95,7 +95,7 @@ export default function Chat() {
       receiver: selectedChat!.selectedName,
       content: textInput,
       receiver_id: selectedChat!.selectedId,
-      isText:true
+      isText: true,
     };
 
     const res = await fetch("http://127.0.0.1:8000/chat", {
@@ -165,25 +165,43 @@ export default function Chat() {
               {/* show the message list */}
               {msgList.map((msg, index) =>
                 msg.sender === name &&
-                msg.receiver === selectedChat.selectedName ? (
+                msg.receiver === selectedChat.selectedName && msg.isText===true ? (
                   <div className="message right" key={index}>
                     <div className="bubble bubble-right">{msg.content}</div>
                     <Avatar size={32}>{name}</Avatar>
                   </div>
-                ) : msg.sender === selectedChat.selectedName &&
-                  msg.receiver === name ? (
+                ) : msg.sender === name &&
+                msg.receiver === selectedChat.selectedName && msg.isText===false && msg.content? (
+                  <div className="message right" key={index}>
+                    <div className="bubble bubble-right"><img className="chat-img" src={msg.content} /></div>
+                    <Avatar size={32}>{name}</Avatar>
+                  </div>):msg.sender === selectedChat.selectedName &&
+                  msg.receiver === name && msg.isText===true? (
                   <div className="message left" key={index}>
                     <Avatar size={32}>{selectedChat.selectedName}</Avatar>
                     <div className="bubble bubble-left">{msg.content}</div>
                   </div>
-                ) : null
+                ) : msg.sender === selectedChat.selectedName &&
+                  msg.receiver === name && msg.isText===false && msg.content? (
+                  <div className="message left" key={index}>
+                    <Avatar size={32}>{selectedChat.selectedName}</Avatar>
+                    <div className="bubble bubble-left"><img className="chat-img" src={msg.content} /></div>
+                  </div>
+                ):null
               )}
               <div className="chat-input-row">
                 <Upload
                   listType="picture-list"
-                  action="/chat/upload"
+                  action="http://127.0.0.1:8000/chat/upload"
                   multiple
                   showUploadList={false}
+                  onChange={()=>{if(selectedChat.selectedName){onClickChat(selectedChat.selectedName)}}}
+                  data={{
+                    sender: name,
+                    sender_id: name_id,
+                    receiver: selectedChat!.selectedName,
+                    receiver_id: selectedChat!.selectedId,
+                  }}
                 >
                   <Button
                     shape="circle"
