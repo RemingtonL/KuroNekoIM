@@ -2,6 +2,7 @@ import "@arco-design/web-react/dist/css/arco.css";
 import { Form, Input, Button, Modal } from "@arco-design/web-react";
 import { useInputValue } from "../../store/loginInput";
 import { useState } from "react";
+import {SERVER_IP,SERVER_PORT} from "../../config/index"
 
 const FormItem = Form.Item;
 
@@ -25,7 +26,7 @@ export default function Register() {
   }
   const handleSubmit = async (inputValue: InputValue) => {
     setInput(inputValue);
-    const res = await fetch("http://127.0.0.1:8000/register", {
+    const res = await fetch(`http://${SERVER_IP}:${SERVER_PORT}/register`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(inputValue),

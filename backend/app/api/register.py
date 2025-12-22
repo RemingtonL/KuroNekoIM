@@ -5,27 +5,13 @@ from email.message import EmailMessage
 from sqlalchemy.orm import Session
 from app.models.user import User
 from app.db import get_db
+from app.core.config import settings
 
 router = APIRouter(tags=["register"])
-# AccAndPwds = [
-#     {
-#         "account": "admin",
-#         "password": "admin",
-#         "email": "admin@gmail.com",
-#         "isVerified": True,
-#     },
-#     {"account": "ZZZ", "password": "ZZZ", "email": "zzz@gmail.com", "isVerified": True},
-#     {
-#         "account": "114514",
-#         "password": "114514",
-#         "email": "114514@gmail.com",
-#         "isVerified": True,
-#     },
-# ]
-SMTP_HOST = "smtp.gmail.com"
-SMTP_PORT = 587
-SMTP_USER = "l1037092456@gmail.com"  # 你的邮箱
-SMTP_PASS = "tedhqircjygusbvn"
+SMTP_HOST = settings.SMTP_HOST
+SMTP_PORT = settings.SMTP_PORT
+SMTP_USER = settings.SMTP_USER
+SMTP_PASS = settings.SMTP_PASS
 
 
 def send_verify_email(to_email: str, verify_url: str):
@@ -45,13 +31,6 @@ def send_verify_email(to_email: str, verify_url: str):
 
 @router.post("/register")
 async def register(registerForm: RegisterForm, db: Session = Depends(get_db)):
-    # isAccRepeated = False
-    # isPwdRepeated = False
-    # for AccAndPwd in AccAndPwds:
-    #     if AccAndPwd["account"] == registerForm.account:
-    #         isAccRepeated = True
-    #     elif AccAndPwd["email"] == registerForm.email:
-    #         isPwdRepeated = True
     isAccRepeated = (
         db.query(User).filter(User.account == registerForm.account).first() is not None
     )
@@ -63,7 +42,7 @@ async def register(registerForm: RegisterForm, db: Session = Depends(get_db)):
     if isAccRepeated == False and isEmlRepeated == False:
         send_verify_email(
             to_email="1037092456@qq.com",
-            verify_url=f"http://127.0.0.1:8000/verify?token={token}",
+            verify_url=f"http://{settings.SERVER_IP}:{settings.SERVER_PORT}/verify?token={token}",
         )
         user = User(
             email=registerForm.email,

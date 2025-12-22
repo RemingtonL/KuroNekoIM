@@ -14,14 +14,13 @@ import { useChatSelect } from "../../store/chatSelect";
 import { useChatInput, ChatRespond } from "../../store/chatInput";
 import "./Chat.css";
 import { ChatInfo, useChatContent } from "../../store/chatContent";
+import {SERVER_IP,SERVER_PORT} from "../../config/index"
 
 export default function Chat() {
   const MenuItem = Menu.Item;
   const SubMenu = Menu.SubMenu;
   const Sider = Layout.Sider;
   const Content = Layout.Content;
-  const collapsedWidth = 60;
-  const normalWidth = 220;
   const onlineUsers = ["admin", "ZZZ", "114514", "1918", "Senbai"]; //list for online users
 
   //who has login
@@ -39,19 +38,19 @@ export default function Chat() {
 
   // control the sidebar
   const [collapsed, setCollapsed] = useState(false);
-  const [siderWidth, setSiderWidth] = useState(normalWidth);
+  const [siderWidth, setSiderWidth] = useState(220);
 
   const onCollapse = (collapsed: boolean) => {
     setCollapsed(collapsed);
-    setSiderWidth(collapsed ? collapsedWidth : normalWidth);
+    setSiderWidth(collapsed ? 60 : 220);
   };
   const handleMoving = (_: any, { width }: { width?: number }) => {
     if (typeof width !== "number") return;
-    if (width > collapsedWidth) {
+    if (width > 60) {
       setSiderWidth(width);
-      setCollapsed(!(width > collapsedWidth + 20));
+      setCollapsed(!(width > 60 + 20));
     } else {
-      setSiderWidth(collapsedWidth);
+      setSiderWidth(60);
       setCollapsed(true);
     }
   };
@@ -61,7 +60,7 @@ export default function Chat() {
   const setSelectedChat = useChatSelect((State) => State.setSelected);
   const onClickChat = async (user: string) => {
     if (name) {
-      const url = new URL("http://127.0.0.1:8000/chat/history");
+      const url = new URL(`http://${SERVER_IP}:${SERVER_PORT}/chat/history`);
       url.searchParams.set("name", name);
       url.searchParams.set("selectedChat", user);
       const res = await fetch(url.toString(), {
@@ -98,7 +97,7 @@ export default function Chat() {
       isText: true,
     };
 
-    const res = await fetch("http://127.0.0.1:8000/chat", {
+    const res = await fetch(`${SERVER_IP}:${SERVER_PORT}/chat`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(msg),
@@ -130,19 +129,11 @@ export default function Chat() {
         >
           <div className="logo" />
           <Menu theme="dark" autoOpen style={{ width: "100%" }}>
+            <MenuItem key = "main"><span className="online-gradient">Online</span></MenuItem>
             <SubMenu
               key="layout"
               title={
-                <span
-                  style={{
-                    background: "linear-gradient(45deg, #4caf50, #9cff9c)",
-                    WebkitBackgroundClip: "text",
-                    color: "transparent",
-                    fontWeight: 500,
-                  }}
-                >
-                  Online
-                </span>
+                <span>Friends</span>
               }
             >
               {onlineFriends.map((user) => (
@@ -155,7 +146,6 @@ export default function Chat() {
         </Sider>
         <Content
           style={{
-            // background: "rgb(240,255,255)",
             textAlign: "center",
             padding: "30px",
           }}
@@ -192,7 +182,7 @@ export default function Chat() {
               <div className="chat-input-row">
                 <Upload
                   listType="picture-list"
-                  action="http://127.0.0.1:8000/chat/upload"
+                  action={`http://${SERVER_IP}:${SERVER_PORT}/chat/upload`}
                   multiple
                   showUploadList={false}
                   onChange={()=>{if(selectedChat.selectedName){onClickChat(selectedChat.selectedName)}}}

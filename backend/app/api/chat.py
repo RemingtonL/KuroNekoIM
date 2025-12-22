@@ -5,14 +5,11 @@ from app.models.message import Message
 from app.models.user import User
 from app.schemas.chat import ChatInfo, ChatRespond
 from pathlib import Path
-import uuid
-import os
+from app.core.config import settings
 
 router = APIRouter(tags=["chat"])
-UPLOAD_DIR = Path(__file__).resolve().parents[1] / "uploads"
+UPLOAD_DIR = Path(__file__).resolve().parents[1] / settings.UPLOAD_DIR
 UPLOAD_DIR.mkdir(parents=True, exist_ok=True)
-
-ALLOWED = {"image/png", "image/jpeg", "image/webp", "image/gif"}
 
 
 # process the chat input. Add the latest msg to the database and return the latest the msg list

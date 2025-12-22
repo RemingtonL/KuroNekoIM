@@ -11,7 +11,7 @@ import { IconUser } from "@arco-design/web-react/icon";
 import { Navigate, useNavigate } from "react-router-dom";
 import { useInputValue } from "../../store/loginInput";
 import { useLoginStatus } from "../../store/loginStatus";
-
+import {SERVER_IP,SERVER_PORT} from "../../config/index"
 const FormItem = Form.Item;
 export default function Login() {
   const [form] = Form.useForm();
@@ -28,7 +28,7 @@ export default function Login() {
   //process the login
   const  handleChange = async (inputValue: InputValue) => {
     setInput(inputValue);
-    const res = await fetch("http://127.0.0.1:8000/login",{ //await 会在这里“停下来”，等服务器回应。
+    const res = await fetch(`http://${SERVER_IP}:${SERVER_PORT}/login`,{ //await 会在这里“停下来”，等服务器回应。
       method:"POST",
       headers:{
         "Content-Type":"application/json",

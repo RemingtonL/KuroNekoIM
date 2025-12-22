@@ -145,3 +145,19 @@
 .chat-img:hover {
   transform: scale(1.01);
 }
+
+.online-gradient {
+  display: inline-block;
+  background: linear-gradient(45deg, #4caf50, #9cff9c);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent; /* 关键：Safari/Chrome 稳 */
+  color: transparent;                   /* 兼容 */
+  font-weight: 500;
+}
+
+.arco-menu-item:hover .online-gradient,
+.arco-menu-selected .online-gradient {
+  -webkit-text-fill-color: transparent;
+  color: transparent;
+}
