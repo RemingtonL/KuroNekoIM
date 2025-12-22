@@ -71,7 +71,7 @@ export default function Chat() {
         chats: ChatInfo[];
         selectedChatId: number;
       } = await res.json();
-      setSelectedChat({ selectedName: name, selectedId: data.selectedChatId });
+      setSelectedChat({ selectedName: user, selectedId: data.selectedChatId });
       setMsg(data.chats);
     }
   };
@@ -95,6 +95,7 @@ export default function Chat() {
       receiver: selectedChat!.selectedName,
       content: textInput,
       receiver_id: selectedChat!.selectedId,
+      isText:true
     };
 
     const res = await fetch("http://127.0.0.1:8000/chat", {

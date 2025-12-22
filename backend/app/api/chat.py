@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, UploadFile, File
 from app.db import get_db
 from sqlalchemy.orm import Session
 from app.models.message import Message
@@ -18,6 +18,7 @@ async def chat(chatInfo: ChatInfo, db: Session = Depends(get_db)):
         sender_id=chatInfo.sender_id,
         receiver_id=chatInfo.receiver_id,
         content=chatInfo.content,
+        isText=chatInfo.isText,
     )
     db.add(message)
     db.commit()
@@ -27,12 +28,12 @@ async def chat(chatInfo: ChatInfo, db: Session = Depends(get_db)):
         db.query(Message)
         .filter(
             (
-                Message.sender == chatInfo.sender
-                and Message.receiver == chatInfo.receiver
+                (Message.sender == chatInfo.sender)
+                & (Message.receiver == chatInfo.receiver)
             )
-            or (
-                Message.sender == chatInfo.receiver
-                and Message.receiver == chatInfo.sender
+            | (
+                (Message.sender == chatInfo.receiver)
+                & (Message.receiver == chatInfo.sender)
             )
         )
         .all()
@@ -44,15 +45,9 @@ async def chat(chatInfo: ChatInfo, db: Session = Depends(get_db)):
                 "sender": chat.sender,
                 "receiver": chat.receiver,
                 "content": chat.content,
+                "isText": chat.isText,
             }
         )
-    chatContents.append(
-        {
-            "sender": chatInfo.sender,
-            "receiver": chatInfo.receiver,
-            "content": chatInfo.content,
-        }
-    )
     return ChatRespond(ok=True, msgList=chatContents)
 
 
@@ -62,8 +57,8 @@ async def history(name: str, selectedChat: str, db: Session = Depends(get_db)):
     chats = (
         db.query(Message)
         .filter(
-            (Message.sender == name and Message.receiver == selectedChat)
-            or (Message.sender == selectedChat and Message.receiver == name)
+            ((Message.sender == name) & (Message.receiver == selectedChat))
+            | ((Message.sender == selectedChat) & (Message.receiver == name))
         )
         .all()
     )
@@ -74,6 +69,7 @@ async def history(name: str, selectedChat: str, db: Session = Depends(get_db)):
                 "sender": chat.sender,
                 "receiver": chat.receiver,
                 "content": chat.content,
+                "isText": chat.isText,
             }
         )
     selectedChatid = (
@@ -82,6 +78,9 @@ async def history(name: str, selectedChat: str, db: Session = Depends(get_db)):
     return {"chats": chatContents, "selectedChatId": selectedChatid}
 
 
-@router.get("chat/upload")
-async def upload():
-    pass
+# @router.post("/chat/upload")
+# async def upload_file(file: UploadFile = File(...)):
+#     return {
+#         "filename": file.filename,
+#         "content_type": file.content_type,
+#     }

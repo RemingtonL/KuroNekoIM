@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, ForeignKey
+from sqlalchemy import Column, Integer, String, ForeignKey, Boolean
 from app.db import Base
 
 
@@ -10,3 +10,4 @@ class Message(Base):
     receiver_id = Column(Integer, ForeignKey("users.id"))
     receiver = Column(String, nullable=False)
     content = Column(String, nullable=False)
+    isText = Column(Boolean, nullable=False)

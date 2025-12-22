@@ -5,6 +5,7 @@ export interface ChatInfo{
     receiver:string|null
     receiver_id:number|null
     content:string|null
+    isText:boolean
 }
 
 interface ChatContent{

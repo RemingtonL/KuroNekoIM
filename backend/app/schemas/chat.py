@@ -9,6 +9,7 @@ class ChatInfo(BaseModel):
     receiver: str
     receiver_id: int
     content: str
+    isText: bool
 
 
 # this one is used as message to be display on front end
