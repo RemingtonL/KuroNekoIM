@@ -40,9 +40,9 @@ export default function Login() {
       Message.error("Server error")
       return
     }
-     const data: { ok: boolean; name?: string; token?: string } = await res.json(); //这一步解析回复，从JSON转换成对象
-    if (data.ok && data.name){
-      setLoginStatus({ name: data.name, isLogin: true })
+     const data: { ok: boolean; name?: string; token?: string; name_id?: number;} = await res.json(); //这一步解析回复，从JSON转换成对象
+    if (data.ok && data.name && data.name_id){
+      setLoginStatus({ name: data.name, isLogin: true,name_id: data.name_id})
       navigate("/chat")
     }
     else{

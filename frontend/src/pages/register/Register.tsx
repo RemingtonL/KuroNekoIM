@@ -1,6 +1,5 @@
 import "@arco-design/web-react/dist/css/arco.css";
 import { Form, Input, Button, Modal } from "@arco-design/web-react";
-import { accountAndPwd } from "../login/AccountAndPassword.js";
 import { useInputValue } from "../../store/loginInput";
 import { useState } from "react";
 
@@ -10,7 +9,7 @@ export default function Register() {
   const [form] = Form.useForm();
   const setInput = useInputValue((State) => State.setValue);
   const [isAccRepeated, setAccRepeated] = useState(false);
-  const [isPwdRepeated, setPwdRepeated] = useState(false);
+  const [isEmlRepeated, setPwdRepeated] = useState(false);
   const [visible, setVisible] = useState(false);
 
   interface InputValue {
@@ -22,7 +21,7 @@ export default function Register() {
   interface RegisterRespond {
     ok: boolean;
     isAccRepeated: boolean;
-    isPwdRepeated: boolean;
+    isEmlRepeated: boolean;
   }
   const handleSubmit = async (inputValue: InputValue) => {
     setInput(inputValue);
@@ -34,8 +33,8 @@ export default function Register() {
     const data = (await res.json()) as RegisterRespond;
     if (data.ok) {
       setAccRepeated(data.isAccRepeated);
-      setPwdRepeated(data.isPwdRepeated);
-      if (data.isAccRepeated || data.isPwdRepeated) {
+      setPwdRepeated(data.isEmlRepeated);
+      if (data.isAccRepeated || data.isEmlRepeated) {
         setVisible(true);
       }
     }
@@ -53,12 +52,12 @@ export default function Register() {
         cancelText="cancel"
         okText="OK"
       >
-        {isAccRepeated ? (
-          <p>account name already exist</p>
-        ) : isPwdRepeated ? (
-          <p>e-mail address already exist</p>
-        ) : isAccRepeated && isPwdRepeated ? (
+        {isAccRepeated && isEmlRepeated ? (
           <p>account name and e-mail address already exist</p>
+        ) : isEmlRepeated ? (
+          <p>e-mail address already exist</p>
+        ) : isAccRepeated ? (
+          <p>account name already exist</p>
         ) : null}
       </Modal>
       <Form

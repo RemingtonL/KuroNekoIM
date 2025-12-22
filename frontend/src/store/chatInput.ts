@@ -9,6 +9,8 @@ interface ChatInfo {
     sender: string
     receiver: string
     content: string
+    sender_id: number
+    receiver_id:number
 }
 
 

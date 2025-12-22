@@ -1,29 +1,26 @@
-from fastapi import APIRouter
+from fastapi import APIRouter, Depends
 from app.schemas.login import LoginForm, LoginResponse
+from sqlalchemy.orm import Session
+from app.models.user import User
+from app.db import get_db
 
 router = APIRouter(tags=["login"])
 
-AccAndPwds = [
-    {"account": "admin", "password": "admin"},
-    {"account": "ZZZ", "password": "ZZZ"},
-    {"account": "114514", "password": "114514"},
-]
-
 
 @router.post("/login")
-async def login(user: LoginForm):
-
-    for AccAndPwd in AccAndPwds:
-        if (
-            user.account == AccAndPwd["account"]
-            and user.password == AccAndPwd["password"]
-        ):
-            return LoginResponse(ok=True, token="token", name="admin")
-        else:
-            return LoginResponse(ok=False)
-
-
-#    if (user.account == "admin" and user.password=="admin"):
-#     return LoginResponse(ok=True,token="token",name="admin")
-#    else:
-#        return LoginResponse(ok=False)
+async def login(user: LoginForm, db: Session = Depends(get_db)):
+    user_login = (
+        db.query(User)
+        .filter(
+            User.account == user.account
+            and User.password_hash == user.password
+            and User.is_verified == True
+        )
+        .first()
+    )
+    if user_login is not None:
+        return LoginResponse(
+            ok=True, token="token", name=user_login.account, name_id=user_login.id
+        )
+    else:
+        return LoginResponse(ok=False)

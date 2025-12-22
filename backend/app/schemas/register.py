@@ -10,5 +10,5 @@ class RegisterForm(BaseModel):
 
 class RegisterRespond(BaseModel):
     isAccRepeated: bool
-    isPwdRepeated: bool
+    isEmlRepeated: bool
     ok: bool

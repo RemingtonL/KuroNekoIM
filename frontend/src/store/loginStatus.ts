@@ -1,8 +1,9 @@
 import { create } from "zustand"
 
 interface LoginInfo{
+    isLogin:boolean,
     name:string|null,
-    isLogin:boolean
+    name_id:number|null
 }
 
 interface LoginStatus {
@@ -12,7 +13,7 @@ interface LoginStatus {
 export const useLoginStatus = create<LoginStatus>(
     (set)=>(
         {
-            loginInfo:{isLogin:false,name:null},
+            loginInfo:{isLogin:false,name:null,name_id:null},
             setLoginStatus:(State)=>set({loginInfo:State})
         }
     )

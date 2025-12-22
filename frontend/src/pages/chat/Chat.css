@@ -87,3 +87,32 @@
   filter: brightness(1.1);
   border-radius: 4px 0 0 0;
 }
+
+.chat-input-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+}
+
+/* 让 Upload 这个“块”不要被挤变形 */
+.chat-upload {
+  flex: 0 0 auto;
+}
+
+/* Arco Upload 的 trigger（按钮/入口）通常在这里 */
+.chat-upload .arco-upload-trigger,
+.chat-upload .arco-upload {
+  display: flex;
+  align-items: center;
+}
+
+/* Input 吃掉剩余宽度 */
+.chat-input {
+  flex: 1;
+}
+
+/* Arco Input 实际包了一层 wrapper，要把 wrapper 也拉伸 */
+.chat-input .arco-input-wrapper {
+  width: 100%;
+}

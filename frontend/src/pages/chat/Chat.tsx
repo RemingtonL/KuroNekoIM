@@ -1,6 +1,14 @@
 import { useState } from "react";
-import { Layout, Menu, Avatar, Input, Badge } from "@arco-design/web-react";
-import { IconUser } from "@arco-design/web-react/icon";
+import {
+  Layout,
+  Menu,
+  Avatar,
+  Input,
+  Badge,
+  Button,
+  Upload,
+} from "@arco-design/web-react";
+import { IconUser, IconPlus } from "@arco-design/web-react/icon";
 import { useLoginStatus } from "../../store/loginStatus";
 import { useChatSelect } from "../../store/chatSelect";
 import { useChatInput, ChatRespond } from "../../store/chatInput";
@@ -19,6 +27,7 @@ export default function Chat() {
   //who has login
   const isLogin = useLoginStatus((State) => State.loginInfo.isLogin);
   const name = useLoginStatus((State) => State.loginInfo.name);
+  const name_id = useLoginStatus((State) => State.loginInfo.name_id);
   let onlineFriends: string[] = [];
   for (const user of onlineUsers) {
     if (user !== name) {
@@ -26,6 +35,9 @@ export default function Chat() {
     }
   }
 
+  //who is online
+
+  // control the sidebar
   const [collapsed, setCollapsed] = useState(false);
   const [siderWidth, setSiderWidth] = useState(normalWidth);
 
@@ -33,7 +45,6 @@ export default function Chat() {
     setCollapsed(collapsed);
     setSiderWidth(collapsed ? collapsedWidth : normalWidth);
   };
-
   const handleMoving = (_: any, { width }: { width?: number }) => {
     if (typeof width !== "number") return;
     if (width > collapsedWidth) {
@@ -49,7 +60,6 @@ export default function Chat() {
   const selectedChat = useChatSelect((State) => State.selected);
   const setSelectedChat = useChatSelect((State) => State.setSelected);
   const onClickChat = async (user: string) => {
-    setSelectedChat(user);
     if (name) {
       const url = new URL("http://127.0.0.1:8000/chat/history");
       url.searchParams.set("name", name);
@@ -57,9 +67,12 @@ export default function Chat() {
       const res = await fetch(url.toString(), {
         method: "get",
       });
-      const resJson = await res.json();
-      const data = resJson as ChatInfo[];
-      setMsg(data);
+      const data: {
+        chats: ChatInfo[];
+        selectedChatId: number;
+      } = await res.json();
+      setSelectedChat({ selectedName: name, selectedId: data.selectedChatId });
+      setMsg(data.chats);
     }
   };
 
@@ -78,8 +91,10 @@ export default function Chat() {
     //需要一个全局的消息列表为State，每次从后端获取历史消息并且跟后端存消息
     const msg: ChatInfo = {
       sender: name,
-      receiver: selectedChat,
+      sender_id: name_id,
+      receiver: selectedChat!.selectedName,
       content: textInput,
+      receiver_id: selectedChat!.selectedId,
     };
 
     const res = await fetch("http://127.0.0.1:8000/chat", {
@@ -148,24 +163,41 @@ export default function Chat() {
             <div className="chat-window">
               {/* show the message list */}
               {msgList.map((msg, index) =>
-                msg.sender === name && msg.receiver === selectedChat ? (
+                msg.sender === name &&
+                msg.receiver === selectedChat.selectedName ? (
                   <div className="message right" key={index}>
                     <div className="bubble bubble-right">{msg.content}</div>
                     <Avatar size={32}>{name}</Avatar>
                   </div>
-                ) : msg.sender === selectedChat && msg.receiver === name ? (
+                ) : msg.sender === selectedChat.selectedName &&
+                  msg.receiver === name ? (
                   <div className="message left" key={index}>
-                    <Avatar size={32}>{selectedChat}</Avatar>
+                    <Avatar size={32}>{selectedChat.selectedName}</Avatar>
                     <div className="bubble bubble-left">{msg.content}</div>
                   </div>
                 ) : null
               )}
-              <Input
-                onChange={(text) => handleInput(text)}
-                onPressEnter={() => sendMsg()}
-                value={textInput ?? ""}
-                placeholder="Press enter to send message"
-              ></Input>
+              <div className="chat-input-row">
+                <Upload
+                  listType="picture-list"
+                  action="/chat/upload"
+                  multiple
+                  showUploadList={false}
+                >
+                  <Button
+                    shape="circle"
+                    type="primary"
+                    icon={<IconPlus />}
+                    className="add-btn"
+                  />
+                </Upload>
+                <Input
+                  onChange={(text) => handleInput(text)}
+                  onPressEnter={() => sendMsg()}
+                  value={textInput ?? ""}
+                  placeholder="Press enter to send message"
+                ></Input>
+              </div>
             </div>
           ) : null}
         </Content>
