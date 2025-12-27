@@ -12,13 +12,14 @@ class ChatInfo(BaseModel):
     isText: bool
 
 
+class ChatReq(BaseModel):
+    message: ChatInfo
+    isGroupChat: bool
+
+
 # this one is used as message to be display on front end
-class ChatMessage(BaseModel):
-    sender: str
-    receiver: str
-    content: str
 
 
 class ChatRespond(BaseModel):
-    msgList: List[ChatMessage]
+    msgList: List[ChatInfo]
     ok: bool

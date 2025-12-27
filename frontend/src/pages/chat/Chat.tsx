@@ -22,6 +22,7 @@ export default function Chat() {
   const Sider = Layout.Sider;
   const Content = Layout.Content;
   const onlineUsers = ["admin", "ZZZ", "114514", "1918", "Senbai"]; //list for online users
+  const groups = ['avemujica','mygo']
 
   //who has login
   const isLogin = useLoginStatus((State) => State.loginInfo.isLogin);
@@ -54,30 +55,40 @@ export default function Chat() {
       setCollapsed(true);
     }
   };
+  // ping to get the online friends and the group
 
   //select who to have a chat, read the msg list from backend everytime click
   const selectedChat = useChatSelect((State) => State.selected);
   const setSelectedChat = useChatSelect((State) => State.setSelected);
-  const onClickChat = async (user: string) => {
+  const [isGroupChat,setIsGroupChat] = useState(false) //to indicate if the selected chat is a group chat
+  const onClickChat = async (user: string,isGroupChat:boolean) => {
     if (name) {
       const url = new URL(`http://${SERVER_IP}:${SERVER_PORT}/chat/history`);
       url.searchParams.set("name", name);
       url.searchParams.set("selectedChat", user);
+      if (isGroupChat){
+        url.searchParams.set("isGroupChat","true");
+      }
+      else{
+        url.searchParams.set("isGroupChat","false");
+      }
       const res = await fetch(url.toString(), {
         method: "get",
       });
+
       const data: {
         chats: ChatInfo[];
         selectedChatId: number;
       } = await res.json();
-      setSelectedChat({ selectedName: user, selectedId: data.selectedChatId });
+      setSelectedChat({ selectedName: user, selectedId: data.selectedChatId});
       setMsg(data.chats);
     }
   };
 
+
+
   //input text
   const textInput = useChatInput((State) => State.inputValue);
-  const textIsNull = textInput === null;
   const setTextInput = useChatInput((State) => State.setValue);
   const handleInput = (text: string) => {
     setTextInput(text);
@@ -86,6 +97,7 @@ export default function Chat() {
   //read Message list
   const msgList = useChatContent((state) => state.chatInfo);
   const setMsg = useChatContent((state) => state.setChatContent);
+  //要根据群组消息表再写一个独立的state
   const sendMsg = async () => {
     //需要一个全局的消息列表为State，每次从后端获取历史消息并且跟后端存消息
     const msg: ChatInfo = {
@@ -96,11 +108,10 @@ export default function Chat() {
       receiver_id: selectedChat!.selectedId,
       isText: true,
     };
-
-    const res = await fetch(`${SERVER_IP}:${SERVER_PORT}/chat`, {
+    const res = await fetch(`http://${SERVER_IP}:${SERVER_PORT}/chat`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(msg),
+      body: JSON.stringify({"message":msg,"isGroupChat":isGroupChat}),
     });
     const resJson = await res.json();
     const data = resJson as ChatRespond;
@@ -131,14 +142,26 @@ export default function Chat() {
           <Menu theme="dark" autoOpen style={{ width: "100%" }}>
             <MenuItem key = "main"><span className="online-gradient">Online</span></MenuItem>
             <SubMenu
-              key="layout"
+              key="Friends"
               title={
                 <span>Friends</span>
               }
             >
               {onlineFriends.map((user) => (
-                <MenuItem onClick={() => onClickChat(user)} key={user}>
+                <MenuItem onClick={() => {setIsGroupChat(false);onClickChat(user,false)}} key={user}>
                   {user}
+                </MenuItem>
+              ))}
+            </SubMenu>
+            <SubMenu
+              key="Groups"
+              title={
+                <span>Groups</span>
+              }
+            >
+              {groups.map((group) => (
+                <MenuItem onClick={() => {onClickChat(group,true);setIsGroupChat(true)}} key={group}>
+                  {group}
                 </MenuItem>
               ))}
             </SubMenu>
@@ -150,7 +173,67 @@ export default function Chat() {
             padding: "30px",
           }}
         >
-          {selectedChat ? ( //only show when someone has been selected
+          {selectedChat && isGroupChat === false? ( //only show when someone has been selected and it is not a group chat
+            <div className="chat-window">
+              {msgList.map((msg, index) =>
+                msg.sender === name &&
+                msg.receiver === selectedChat.selectedName && msg.isText===true ? (
+                  <div className="message right" key={index}>
+                    <div className="bubble bubble-right">{msg.content}</div>
+                    <Avatar size={32}>{name}</Avatar>
+                  </div>
+                ) : msg.sender === name &&
+                msg.receiver === selectedChat.selectedName && msg.isText===false && msg.content? (
+                  <div className="message right" key={index}>
+                    <div className="bubble bubble-right"><img className="chat-img" src={msg.content} /></div>
+                    <Avatar size={32}>{name}</Avatar>
+                  </div>):msg.sender === selectedChat.selectedName &&
+                  msg.receiver === name && msg.isText===true? (
+                  <div className="message left" key={index}>
+                    <Avatar size={32}>{selectedChat.selectedName}</Avatar>
+                    <div className="bubble bubble-left">{msg.content}</div>
+                  </div>
+                ) : msg.sender === selectedChat.selectedName &&
+                  msg.receiver === name && msg.isText===false && msg.content? (
+                  <div className="message left" key={index}>
+                    <Avatar size={32}>{selectedChat.selectedName}</Avatar>
+                    <div className="bubble bubble-left"><img className="chat-img" src={msg.content} /></div>
+                  </div>
+                ):null
+              )}
+              
+              
+              <div className="chat-input-row">
+                <Upload
+                  listType="picture-list"
+                  action={`http://${SERVER_IP}:${SERVER_PORT}/chat/upload`}
+                  multiple
+                  showUploadList={false}
+                  onChange={()=>{if(selectedChat.selectedName){onClickChat(selectedChat.selectedName,false)}}}
+                  data={{
+                    sender: name,
+                    sender_id: name_id,
+                    receiver: selectedChat!.selectedName,
+                    receiver_id: selectedChat!.selectedId,
+                  }}
+                >
+                  <Button
+                    shape="circle"
+                    type="primary"
+                    icon={<IconPlus />}
+                    className="add-btn"
+                  />
+                </Upload>
+                <Input
+                  onChange={(text) => handleInput(text)}
+                  onPressEnter={() => {sendMsg();}}
+                  value={textInput ?? ""}
+                  placeholder="Press enter to send message"
+                ></Input>
+              </div>
+            </div>
+          ) : null}
+          {selectedChat && isGroupChat === true? ( //it is a group chat
             <div className="chat-window">
               {/* show the message list */}
               {msgList.map((msg, index) =>
@@ -179,13 +262,15 @@ export default function Chat() {
                   </div>
                 ):null
               )}
+              
+              
               <div className="chat-input-row">
                 <Upload
                   listType="picture-list"
                   action={`http://${SERVER_IP}:${SERVER_PORT}/chat/upload`}
                   multiple
                   showUploadList={false}
-                  onChange={()=>{if(selectedChat.selectedName){onClickChat(selectedChat.selectedName)}}}
+                  onChange={()=>{if(selectedChat.selectedName){onClickChat(selectedChat.selectedName,true)}}}
                   data={{
                     sender: name,
                     sender_id: name_id,
