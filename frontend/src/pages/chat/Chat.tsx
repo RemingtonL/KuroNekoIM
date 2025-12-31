@@ -97,7 +97,6 @@ export default function Chat() {
   //read Message list
   const msgList = useChatContent((state) => state.chatInfo);
   const setMsg = useChatContent((state) => state.setChatContent);
-  //要根据群组消息表再写一个独立的state
   const sendMsg = async () => {
     //需要一个全局的消息列表为State，每次从后端获取历史消息并且跟后端存消息
     const msg: ChatInfo = {
@@ -209,7 +208,7 @@ export default function Chat() {
                   action={`http://${SERVER_IP}:${SERVER_PORT}/chat/upload`}
                   multiple
                   showUploadList={false}
-                  onChange={()=>{if(selectedChat.selectedName){onClickChat(selectedChat.selectedName,false)}}}
+                  onChange={()=>{if(selectedChat.selectedName){onClickChat(selectedChat.selectedName,false)}}} //update the history when the upload is done
                   data={{
                     sender: name,
                     sender_id: name_id,

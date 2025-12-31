@@ -10,4 +10,6 @@ class Message(Base):
     receiver_id = Column(Integer, ForeignKey("users.id"))
     receiver = Column(String, nullable=False)
     content = Column(String, nullable=False)
-    isText = Column(Boolean, nullable=False)
+    msg_type = Column(String, nullable=False)
+    content_type = Column(String, nullable=False)
+    file_name = Column(String, nullable=False)

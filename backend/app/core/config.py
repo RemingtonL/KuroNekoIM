@@ -25,6 +25,22 @@ class Settings(BaseSettings):
 
     # upload
     UPLOAD_DIR: str = "uploads"
+    ALLOWED_MIME: List[str] = [
+        # images
+        "image/png",
+        "image/jpeg",
+        "image/webp",
+        "image/gif",
+        # docs
+        "application/pdf",
+        "text/plain",
+        "application/zip",
+        "application/x-zip-compressed",
+        "application/msword",
+        "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+        "application/vnd.ms-excel",
+        "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+    ]
 
     # Emai verify
     SMTP_HOST: str = "smtp.gmail.com"

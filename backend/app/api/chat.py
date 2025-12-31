@@ -45,7 +45,7 @@ async def chat(chatReq: ChatReq, db: Session = Depends(get_db)):
             )
             .all()
         )
-    else:
+    else:  # for group chat
         message = Group_Message(
             sender=chatReq.message.sender,
             group_name=chatReq.message.receiver,
@@ -175,7 +175,7 @@ async def upload_file(
     receiver_id: int = Form(...),
     db: Session = Depends(get_db),
 ):
-    if file.content_type not in ("image/png", "image/jpeg"):
+    if file.content_type not in settings.ALLOWED_MIME:
         return {"error": "Invalid file type"}
     content = await file.read()
     with open(f"{UPLOAD_DIR}/{file.filename}", "wb") as f:
