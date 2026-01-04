@@ -5,7 +5,9 @@ export interface ChatInfo{
     receiver:string|null
     receiver_id:number|null
     content:string|null
-    isText:boolean
+    msg_type:string|null // text,img,file
+    content_type:string|null // the type of the content
+    file_name:string|null // origin name of the file
 }
 
 interface ChatContent{

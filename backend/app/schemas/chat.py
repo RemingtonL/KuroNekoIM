@@ -1,4 +1,4 @@
-from typing import List
+from typing import List, Optional
 from pydantic import BaseModel
 
 
@@ -9,7 +9,9 @@ class ChatInfo(BaseModel):
     receiver: str
     receiver_id: int
     content: str
-    isText: bool
+    msg_type: str
+    content_type: Optional[str] = None
+    file_name: Optional[str] = None
 
 
 class ChatReq(BaseModel):

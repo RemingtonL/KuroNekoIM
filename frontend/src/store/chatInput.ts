@@ -11,7 +11,9 @@ interface ChatInfo {
     content: string
     sender_id: number
     receiver_id:number
-    isText:boolean
+    msg_type:string|null // text,img,file
+    content_type:string|null // the type of the content
+    file_name:string|null // origin name of the file
 }
 
 

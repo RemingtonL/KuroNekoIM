@@ -161,3 +161,20 @@
   -webkit-text-fill-color: transparent;
   color: transparent;
 }
+
+.file-card{
+  display:flex;
+  align-items:center;
+  gap:8px;
+  padding:10px 12px;
+  border-radius:12px;
+  background: rgba(255,255,255,0.08);
+  text-decoration:none;
+  color: inherit;
+  max-width: 320px;
+}
+.file-name{
+  overflow:hidden;
+  text-overflow:ellipsis;
+  white-space:nowrap;
+}

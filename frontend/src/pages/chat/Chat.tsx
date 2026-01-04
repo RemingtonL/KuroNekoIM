@@ -14,7 +14,7 @@ import { useChatSelect } from "../../store/chatSelect";
 import { useChatInput, ChatRespond } from "../../store/chatInput";
 import "./Chat.css";
 import { ChatInfo, useChatContent } from "../../store/chatContent";
-import {SERVER_IP,SERVER_PORT} from "../../config/index"
+import { SERVER_IP, SERVER_PORT } from "../../config/index";
 
 export default function Chat() {
   const MenuItem = Menu.Item;
@@ -22,7 +22,7 @@ export default function Chat() {
   const Sider = Layout.Sider;
   const Content = Layout.Content;
   const onlineUsers = ["admin", "ZZZ", "114514", "1918", "Senbai"]; //list for online users
-  const groups = ['avemujica','mygo']
+  const groups = ["avemujica", "mygo"];
 
   //who has login
   const isLogin = useLoginStatus((State) => State.loginInfo.isLogin);
@@ -60,17 +60,16 @@ export default function Chat() {
   //select who to have a chat, read the msg list from backend everytime click
   const selectedChat = useChatSelect((State) => State.selected);
   const setSelectedChat = useChatSelect((State) => State.setSelected);
-  const [isGroupChat,setIsGroupChat] = useState(false) //to indicate if the selected chat is a group chat
-  const onClickChat = async (user: string,isGroupChat:boolean) => {
+  const [isGroupChat, setIsGroupChat] = useState(false); //to indicate if the selected chat is a group chat
+  const onClickChat = async (user: string, isGroupChat: boolean) => {
     if (name) {
       const url = new URL(`http://${SERVER_IP}:${SERVER_PORT}/chat/history`);
       url.searchParams.set("name", name);
       url.searchParams.set("selectedChat", user);
-      if (isGroupChat){
-        url.searchParams.set("isGroupChat","true");
-      }
-      else{
-        url.searchParams.set("isGroupChat","false");
+      if (isGroupChat) {
+        url.searchParams.set("isGroupChat", "true");
+      } else {
+        url.searchParams.set("isGroupChat", "false");
       }
       const res = await fetch(url.toString(), {
         method: "get",
@@ -80,12 +79,10 @@ export default function Chat() {
         chats: ChatInfo[];
         selectedChatId: number;
       } = await res.json();
-      setSelectedChat({ selectedName: user, selectedId: data.selectedChatId});
+      setSelectedChat({ selectedName: user, selectedId: data.selectedChatId });
       setMsg(data.chats);
     }
   };
-
-
 
   //input text
   const textInput = useChatInput((State) => State.inputValue);
@@ -105,12 +102,14 @@ export default function Chat() {
       receiver: selectedChat!.selectedName,
       content: textInput,
       receiver_id: selectedChat!.selectedId,
-      isText: true,
+      msg_type: "text",
+      content_type: null,
+      file_name: null,
     };
     const res = await fetch(`http://${SERVER_IP}:${SERVER_PORT}/chat`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({"message":msg,"isGroupChat":isGroupChat}),
+      body: JSON.stringify({ message: msg, isGroupChat: isGroupChat }),
     });
     const resJson = await res.json();
     const data = resJson as ChatRespond;
@@ -139,27 +138,31 @@ export default function Chat() {
         >
           <div className="logo" />
           <Menu theme="dark" autoOpen style={{ width: "100%" }}>
-            <MenuItem key = "main"><span className="online-gradient">Online</span></MenuItem>
-            <SubMenu
-              key="Friends"
-              title={
-                <span>Friends</span>
-              }
-            >
+            <MenuItem key="main">
+              <span className="online-gradient">Online</span>
+            </MenuItem>
+            <SubMenu key="Friends" title={<span>Friends</span>}>
               {onlineFriends.map((user) => (
-                <MenuItem onClick={() => {setIsGroupChat(false);onClickChat(user,false)}} key={user}>
+                <MenuItem
+                  onClick={() => {
+                    setIsGroupChat(false);
+                    onClickChat(user, false);
+                  }}
+                  key={user}
+                >
                   {user}
                 </MenuItem>
               ))}
             </SubMenu>
-            <SubMenu
-              key="Groups"
-              title={
-                <span>Groups</span>
-              }
-            >
+            <SubMenu key="Groups" title={<span>Groups</span>}>
               {groups.map((group) => (
-                <MenuItem onClick={() => {onClickChat(group,true);setIsGroupChat(true)}} key={group}>
+                <MenuItem
+                  onClick={() => {
+                    onClickChat(group, true);
+                    setIsGroupChat(true);
+                  }}
+                  key={group}
+                >
                   {group}
                 </MenuItem>
               ))}
@@ -172,48 +175,103 @@ export default function Chat() {
             padding: "30px",
           }}
         >
-          {selectedChat && isGroupChat === false? ( //only show when someone has been selected and it is not a group chat
+          {selectedChat ? ( //only show when someone pr a group chat has been selected
             <div className="chat-window">
               {msgList.map((msg, index) =>
                 msg.sender === name &&
-                msg.receiver === selectedChat.selectedName && msg.isText===true ? (
+                msg.receiver === selectedChat.selectedName &&
+                msg.msg_type === "text" ? (
                   <div className="message right" key={index}>
                     <div className="bubble bubble-right">{msg.content}</div>
                     <Avatar size={32}>{name}</Avatar>
                   </div>
                 ) : msg.sender === name &&
-                msg.receiver === selectedChat.selectedName && msg.isText===false && msg.content? (
+                  msg.receiver === selectedChat.selectedName &&
+                  msg.msg_type === "image" &&
+                  msg.content ? (
                   <div className="message right" key={index}>
-                    <div className="bubble bubble-right"><img className="chat-img" src={msg.content} /></div>
+                    <div className="bubble bubble-right">
+                      <img className="chat-img" src={msg.content} />
+                    </div>
                     <Avatar size={32}>{name}</Avatar>
-                  </div>):msg.sender === selectedChat.selectedName &&
-                  msg.receiver === name && msg.isText===true? (
+                  </div>
+                ) : msg.sender === name &&
+                  msg.receiver === selectedChat.selectedName &&
+                  msg.msg_type === "file" &&
+                  msg.content ? (
+                  <div className="message right" key={index}>
+                    <div className="bubble bubble-right">
+                      <a
+                        className="file-card"
+                        href={msg.content}
+                        target="_blank"
+                        rel="noreferrer"
+                      >
+                        <span className="file-icon">📎</span>
+                        <span className="file-name">
+                          {msg.file_name ?? "download file"}
+                        </span>
+                      </a>
+                    </div>
+                    <Avatar size={32}>{name}</Avatar>
+                  </div>
+                ) : msg.sender === selectedChat.selectedName &&
+                  msg.receiver === name &&
+                  msg.msg_type === "text" ? (
                   <div className="message left" key={index}>
                     <Avatar size={32}>{selectedChat.selectedName}</Avatar>
                     <div className="bubble bubble-left">{msg.content}</div>
                   </div>
                 ) : msg.sender === selectedChat.selectedName &&
-                  msg.receiver === name && msg.isText===false && msg.content? (
+                  msg.receiver === name &&
+                  msg.msg_type === "image" &&
+                  msg.content ? (
                   <div className="message left" key={index}>
                     <Avatar size={32}>{selectedChat.selectedName}</Avatar>
-                    <div className="bubble bubble-left"><img className="chat-img" src={msg.content} /></div>
+                    <div className="bubble bubble-left">
+                      <img className="chat-img" src={msg.content} />
+                    </div>
                   </div>
-                ):null
+                ) : msg.sender === selectedChat.selectedName &&
+                  msg.receiver === name &&
+                  msg.msg_type === "file" &&
+                  msg.content ? (
+                  <div className="message left" key={index}>
+                    <div className="bubble bubble-left">
+                      <a
+                        className="file-card"
+                        href={msg.content}
+                        target="_blank"
+                        rel="noreferrer"
+                      >
+                        <span className="file-icon">📎</span>
+                        <span className="file-name">
+                          {msg.file_name ?? "download file"}
+                        </span>
+                      </a>
+                    </div>
+                    <Avatar size={32}>{name}</Avatar>
+                  </div>
+                ) :null
               )}
-              
-              
+
               <div className="chat-input-row">
                 <Upload
                   listType="picture-list"
                   action={`http://${SERVER_IP}:${SERVER_PORT}/chat/upload`}
                   multiple
                   showUploadList={false}
-                  onChange={()=>{if(selectedChat.selectedName){onClickChat(selectedChat.selectedName,false)}}} //update the history when the upload is done
+                  onChange={() => {
+                    if (selectedChat.selectedName) {
+                      onClickChat(selectedChat.selectedName, isGroupChat);
+                    }
+                  }} //update the history when the upload is done
                   data={{
                     sender: name,
                     sender_id: name_id,
                     receiver: selectedChat!.selectedName,
                     receiver_id: selectedChat!.selectedId,
+                    isGroupChat:isGroupChat,
                   }}
                 >
                   <Button
@@ -225,68 +283,9 @@ export default function Chat() {
                 </Upload>
                 <Input
                   onChange={(text) => handleInput(text)}
-                  onPressEnter={() => {sendMsg();}}
-                  value={textInput ?? ""}
-                  placeholder="Press enter to send message"
-                ></Input>
-              </div>
-            </div>
-          ) : null}
-          {selectedChat && isGroupChat === true? ( //it is a group chat
-            <div className="chat-window">
-              {/* show the message list */}
-              {msgList.map((msg, index) =>
-                msg.sender === name &&
-                msg.receiver === selectedChat.selectedName && msg.isText===true ? (
-                  <div className="message right" key={index}>
-                    <div className="bubble bubble-right">{msg.content}</div>
-                    <Avatar size={32}>{name}</Avatar>
-                  </div>
-                ) : msg.sender === name &&
-                msg.receiver === selectedChat.selectedName && msg.isText===false && msg.content? (
-                  <div className="message right" key={index}>
-                    <div className="bubble bubble-right"><img className="chat-img" src={msg.content} /></div>
-                    <Avatar size={32}>{name}</Avatar>
-                  </div>):msg.sender === selectedChat.selectedName &&
-                  msg.receiver === name && msg.isText===true? (
-                  <div className="message left" key={index}>
-                    <Avatar size={32}>{selectedChat.selectedName}</Avatar>
-                    <div className="bubble bubble-left">{msg.content}</div>
-                  </div>
-                ) : msg.sender === selectedChat.selectedName &&
-                  msg.receiver === name && msg.isText===false && msg.content? (
-                  <div className="message left" key={index}>
-                    <Avatar size={32}>{selectedChat.selectedName}</Avatar>
-                    <div className="bubble bubble-left"><img className="chat-img" src={msg.content} /></div>
-                  </div>
-                ):null
-              )}
-              
-              
-              <div className="chat-input-row">
-                <Upload
-                  listType="picture-list"
-                  action={`http://${SERVER_IP}:${SERVER_PORT}/chat/upload`}
-                  multiple
-                  showUploadList={false}
-                  onChange={()=>{if(selectedChat.selectedName){onClickChat(selectedChat.selectedName,true)}}}
-                  data={{
-                    sender: name,
-                    sender_id: name_id,
-                    receiver: selectedChat!.selectedName,
-                    receiver_id: selectedChat!.selectedId,
+                  onPressEnter={() => {
+                    sendMsg();
                   }}
-                >
-                  <Button
-                    shape="circle"
-                    type="primary"
-                    icon={<IconPlus />}
-                    className="add-btn"
-                  />
-                </Upload>
-                <Input
-                  onChange={(text) => handleInput(text)}
-                  onPressEnter={() => sendMsg()}
                   value={textInput ?? ""}
                   placeholder="Press enter to send message"
                 ></Input>

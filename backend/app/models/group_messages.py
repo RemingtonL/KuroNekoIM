@@ -14,6 +14,6 @@ class Group_Message(Base):
         nullable=False,
     )
     content = Column(String, nullable=False)
-    msg_type = Column(String, nullable=False)
-    content_type = Column(String, nullable=False)
-    file_name = Column(String, nullable=False)
+    msg_type = Column(String, nullable=False)  # text,img,file
+    content_type = Column(String, nullable=True)  # the type of the content
+    file_name = Column(String, nullable=True)
