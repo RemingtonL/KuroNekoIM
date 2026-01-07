@@ -60,9 +60,16 @@ export default function Chat() {
     const data: { ok: boolean } = await res.json();
   };
   useEffect(() => {
+  onlineStatusUpdate();
+  onlineStatus();
+
+  const id = setInterval(() => {
     onlineStatusUpdate();
     onlineStatus();
-  }, []);
+  }, 5000);
+
+  return () => clearInterval(id);
+}, [name]);
   // control the sidebar
   const [collapsed, setCollapsed] = useState(false);
   const [siderWidth, setSiderWidth] = useState(220);
