@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, Boolean
+from sqlalchemy import Column, Integer, String, Boolean, BIGINT
 from app.db import Base
 
 
@@ -9,3 +9,4 @@ class User(Base):
     email = Column(String, unique=True, index=True, nullable=False)
     password_hash = Column(String, nullable=False)
     is_verified = Column(Boolean, default=False)
+    last_seen = Column(BIGINT, nullable=False)

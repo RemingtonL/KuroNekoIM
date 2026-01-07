@@ -1,6 +1,6 @@
 from fastapi import FastAPI
 from fastapi.staticfiles import StaticFiles
-from app.api import login, chat, register
+from app.api import login, chat, register, verify, online
 from pathlib import Path
 from fastapi.middleware.cors import CORSMiddleware
 from app.core.config import settings
@@ -25,3 +25,5 @@ app.add_middleware(
 app.include_router(login.router)
 app.include_router(chat.router)
 app.include_router(register.router)
+app.include_router(verify.router)
+app.include_router(online.router)

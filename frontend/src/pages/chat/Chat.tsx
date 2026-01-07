@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   Layout,
   Menu,
@@ -21,22 +21,48 @@ export default function Chat() {
   const SubMenu = Menu.SubMenu;
   const Sider = Layout.Sider;
   const Content = Layout.Content;
-  const onlineUsers = ["admin", "ZZZ", "114514", "1918", "Senbai"]; //list for online users
   const groups = ["avemujica", "mygo"];
 
   //who has login
   const isLogin = useLoginStatus((State) => State.loginInfo.isLogin);
   const name = useLoginStatus((State) => State.loginInfo.name);
   const name_id = useLoginStatus((State) => State.loginInfo.name_id);
-  let onlineFriends: string[] = [];
-  for (const user of onlineUsers) {
-    if (user !== name) {
-      onlineFriends.push(user);
-    }
-  }
-
   //who is online
 
+  // check all the online user
+  const [onlineUsers, setOnlineUsers] = useState<string[]>();
+  const onlineStatus = async () => {
+    const seconds = new Date().getTime();
+    const url = new URL(`http://${SERVER_IP}:${SERVER_PORT}/online-status`);
+    url.searchParams.set("time", String(seconds));
+    if (name) {
+      url.searchParams.set("name",name)
+    }
+    const res = await fetch(url, {
+      method: "get",
+      headers: { "Content-type": "application/json" },
+    });
+    const online_users: string[] = await res.json();
+    setOnlineUsers(online_users);
+    console.log(name);
+  };
+  const onlineStatusUpdate = async () => {
+    const seconds = new Date().getTime();
+    const url = new URL(`http://${SERVER_IP}:${SERVER_PORT}/online-update`);
+    if (name) {
+      url.searchParams.set("name", name);
+      url.searchParams.set("time", String(seconds));
+    }
+    const res = await fetch(url, {
+      method: "get",
+      headers: { "Content-type": "application/json" },
+    });
+    const data: { ok: boolean } = await res.json();
+  };
+  useEffect(() => {
+    onlineStatusUpdate();
+    onlineStatus();
+  }, []);
   // control the sidebar
   const [collapsed, setCollapsed] = useState(false);
   const [siderWidth, setSiderWidth] = useState(220);
@@ -119,6 +145,7 @@ export default function Chat() {
     }
   };
 
+  // console.log(onlineUsers)
   return (
     <>
       <Avatar style={{ position: "fixed", top: 20, right: 20 }}>
@@ -142,7 +169,7 @@ export default function Chat() {
               <span className="online-gradient">Online</span>
             </MenuItem>
             <SubMenu key="Friends" title={<span>Friends</span>}>
-              {onlineFriends.map((user) => (
+            {onlineUsers?onlineUsers.map((user) => (
                 <MenuItem
                   onClick={() => {
                     setIsGroupChat(false);
@@ -152,7 +179,7 @@ export default function Chat() {
                 >
                   {user}
                 </MenuItem>
-              ))}
+              )):null}
             </SubMenu>
             <SubMenu key="Groups" title={<span>Groups</span>}>
               {groups.map((group) => (
@@ -175,19 +202,19 @@ export default function Chat() {
             padding: "30px",
           }}
         >
-          {selectedChat ? ( //only show when someone pr a group chat has been selected
+          {selectedChat ? ( //only show when someone or a group chat has been selected
             <div className="chat-window">
               {msgList.map((msg, index) =>
-                msg.sender === name &&
+                msg.sender === name && //message sent by "myself"
                 msg.receiver === selectedChat.selectedName &&
-                msg.msg_type === "text" ? (
+                msg.msg_type === "text" ? ( // a text
                   <div className="message right" key={index}>
                     <div className="bubble bubble-right">{msg.content}</div>
                     <Avatar size={32}>{name}</Avatar>
                   </div>
                 ) : msg.sender === name &&
                   msg.receiver === selectedChat.selectedName &&
-                  msg.msg_type === "image" &&
+                  msg.msg_type === "image" && // a image
                   msg.content ? (
                   <div className="message right" key={index}>
                     <div className="bubble bubble-right">
@@ -197,7 +224,7 @@ export default function Chat() {
                   </div>
                 ) : msg.sender === name &&
                   msg.receiver === selectedChat.selectedName &&
-                  msg.msg_type === "file" &&
+                  msg.msg_type === "file" && // a file,pdf,zip...
                   msg.content ? (
                   <div className="message right" key={index}>
                     <div className="bubble bubble-right">
@@ -216,7 +243,7 @@ export default function Chat() {
                     <Avatar size={32}>{name}</Avatar>
                   </div>
                 ) : msg.sender === selectedChat.selectedName &&
-                  msg.receiver === name &&
+                  msg.receiver === name && // message sent by other people, or a group message
                   msg.msg_type === "text" ? (
                   <div className="message left" key={index}>
                     <Avatar size={32}>{selectedChat.selectedName}</Avatar>
@@ -252,7 +279,7 @@ export default function Chat() {
                     </div>
                     <Avatar size={32}>{name}</Avatar>
                   </div>
-                ) :null
+                ) : null
               )}
 
               <div className="chat-input-row">
@@ -271,7 +298,7 @@ export default function Chat() {
                     sender_id: name_id,
                     receiver: selectedChat!.selectedName,
                     receiver_id: selectedChat!.selectedId,
-                    isGroupChat:isGroupChat,
+                    isGroupChat: isGroupChat,
                   }}
                 >
                   <Button

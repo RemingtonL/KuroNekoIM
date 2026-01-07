@@ -23,6 +23,9 @@ class Settings(BaseSettings):
         f"postgresql://{DATASE_USER_NAME}:{DATASE_USER_PWD}@{DATABASE_IP}:{DATABASE_PORT}/{DATABASE_NAME}"
     )
 
+    # online status check
+    INTERVAL_SECONDS: int = 30000
+
     # upload
     UPLOAD_DIR: str = "uploads"
     ALLOWED_MIME: List[str] = [
