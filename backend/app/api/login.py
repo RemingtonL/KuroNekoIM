@@ -11,16 +11,18 @@ router = APIRouter(tags=["login"])
 async def login(user: LoginForm, db: Session = Depends(get_db)):
     user_login = (
         db.query(User)
-        .filter(
-            User.account == user.account
-            and User.password_hash == user.password
-            and User.is_verified == True
-        )
+        .filter((User.account == user.account) & (User.password_hash == user.password))
         .first()
     )
-    if user_login is not None:
+    if user_login is not None and not user_login.is_verified:
+        return LoginResponse(ok=True, token="token", is_verified=False)
+    elif user_login is not None and user_login.is_verified:
         return LoginResponse(
-            ok=True, token="token", name=user_login.account, name_id=user_login.id
+            ok=True,
+            token="token",
+            name=user_login.account,
+            name_id=user_login.id,
+            is_verified=True,
         )
     else:
         return LoginResponse(ok=False)

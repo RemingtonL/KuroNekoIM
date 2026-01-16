@@ -2,7 +2,7 @@ import "@arco-design/web-react/dist/css/arco.css";
 import { Form, Input, Button, Modal } from "@arco-design/web-react";
 import { useInputValue } from "../../store/loginInput";
 import { useState } from "react";
-import {SERVER_IP,SERVER_PORT} from "../../config/index"
+import { SERVER_IP, SERVER_PORT } from "../../config/index";
 
 const FormItem = Form.Item;
 
@@ -12,6 +12,7 @@ export default function Register() {
   const [isAccRepeated, setAccRepeated] = useState(false);
   const [isEmlRepeated, setPwdRepeated] = useState(false);
   const [visible, setVisible] = useState(false);
+  const [visibleButton, setVisibleButton] = useState(true);
 
   interface InputValue {
     email: string;
@@ -35,16 +36,24 @@ export default function Register() {
     if (data.ok) {
       setAccRepeated(data.isAccRepeated);
       setPwdRepeated(data.isEmlRepeated);
-      if (data.isAccRepeated || data.isEmlRepeated) {
-        setVisible(true);
-      }
+      setVisible(true);
     }
+  };
+  const handleValueChange = () => {
+    const { email, account, password1, password2 } = form.getFieldsValue();
+    const ok =
+      !!email &&
+      !!account &&
+      !!password1 &&
+      !!password2 &&
+      password1 === password2;
+
+    setVisibleButton(!ok);
   };
 
   return (
     <>
       <Modal
-        title="Modal Title"
         visible={visible}
         onOk={() => setVisible(false)}
         onCancel={() => setVisible(false)}
@@ -59,7 +68,12 @@ export default function Register() {
           <p>e-mail address already exist</p>
         ) : isAccRepeated ? (
           <p>account name already exist</p>
-        ) : null}
+        ) : (
+          <p>
+            Verification email has been sent to your email address, please click
+            the link in to verify your email
+          </p>
+        )}
       </Modal>
       <Form
         form={form}
@@ -71,28 +85,68 @@ export default function Register() {
           label="E-mail address"
           field="email"
           rules={[{ required: true }]}
+          onChange={handleValueChange}
         >
           <Input type="email" placeholder="please enter your E-mail address" />
         </FormItem>
-        <FormItem label="account" field="account" rules={[{ required: true }]}>
+        <FormItem
+          label="account"
+          field="account"
+          onChange={handleValueChange}
+          rules={[
+            { required: true },
+            {
+              validator: (value, callback) => {
+                if (!value) {
+                  return callback("please enter the account");
+                }
+              },
+            },
+          ]}
+        >
           <Input placeholder="please enter your account" />
         </FormItem>
         <FormItem
           label="password"
           field="password1"
-          rules={[{ required: true }]}
+          onChange={handleValueChange}
+          rules={[
+            { required: true },
+            {
+              validator: (value, callback) => {
+                if (!value) {
+                  return callback("please enter the password");
+                }
+              },
+            },
+          ]}
         >
           <Input placeholder="please enter your password" type="password" />
         </FormItem>
         <FormItem
           label="password"
           field="password2"
-          rules={[{ required: true }]}
+          onChange={handleValueChange}
+          rules={[
+            { required: true, message: "Please enter your password again" },
+            {
+              validator: (value, callback) => {
+                const pw1 = form.getFieldValue("password1");
+                if (!value) {
+                  return callback();
+                }
+                if (value !== pw1) {
+                  return callback("Passwords do not match");
+                }
+                callback();
+              },
+            },
+          ]}
         >
           <Input placeholder="please enter your password" type="password" />
         </FormItem>
         <FormItem wrapperCol={{ offset: 5 }}>
-          <Button type="primary" htmlType="submit" style={{ marginRight: 24 }}>
+          <Button type="primary" htmlType="submit" disabled={visibleButton}>
             Register
           </Button>
         </FormItem>

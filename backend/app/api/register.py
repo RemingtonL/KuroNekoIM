@@ -6,6 +6,7 @@ from sqlalchemy.orm import Session
 from app.models.user import User
 from app.db import get_db
 from app.core.config import settings
+from app.core.jwt_token import create_email_verify_token
 
 router = APIRouter(tags=["register"])
 SMTP_HOST = settings.SMTP_HOST
@@ -40,10 +41,7 @@ async def register(registerForm: RegisterForm, db: Session = Depends(get_db)):
     # send mail to verify
     token = "verified"
     if isAccRepeated == False and isEmlRepeated == False:
-        send_verify_email(
-            to_email="1037092456@qq.com",
-            verify_url=f"http://{settings.SERVER_IP}:{settings.SERVER_PORT}/verify?token={token}",
-        )
+
         user = User(
             email=registerForm.email,
             account=registerForm.account,
@@ -53,6 +51,17 @@ async def register(registerForm: RegisterForm, db: Session = Depends(get_db)):
         db.add(user)
         db.commit()
         db.refresh(user)
+        user_new = db.query(User).filter(registerForm.account == User.account).first()
+        token = create_email_verify_token(
+            user_id=user_new.id,
+            email=user_new.email,
+            secret_key=settings.SECRET_KEY,
+            ttl_seconds=settings.EMAIL_VERIFY_TTL_SECONDS,
+        )
+        send_verify_email(
+            to_email="1037092456@qq.com",
+            verify_url=f"{settings.SERVER_IP}:{settings.SERVER_PORT}/verify?token={token}",
+        )
     return RegisterRespond(
         ok=True, isAccRepeated=isAccRepeated, isEmlRepeated=isEmlRepeated
     )

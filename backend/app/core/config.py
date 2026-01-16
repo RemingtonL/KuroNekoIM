@@ -50,6 +50,8 @@ class Settings(BaseSettings):
     SMTP_PORT: int = 587
     SMTP_USER: str = "l1037092456@gmail.com"
     SMTP_PASS: str = "tedhqircjygusbvn"
+    SECRET_KEY: str = "114514"
+    EMAIL_VERIFY_TTL_SECONDS: int = 3600
 
     class Config:
         env_file = ".env"
