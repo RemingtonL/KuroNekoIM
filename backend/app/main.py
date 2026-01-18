@@ -22,8 +22,8 @@ app.add_middleware(
 
 
 # process the login
-app.include_router(login.router)
-app.include_router(chat.router)
-app.include_router(register.router)
-app.include_router(verify.router)
-app.include_router(online.router)
+app.include_router(login.router, prefix="/api")
+app.include_router(chat.router, prefix="/api")
+app.include_router(register.router, prefix="/api")
+app.include_router(verify.router, prefix="/api")
+app.include_router(online.router, prefix="/api")
