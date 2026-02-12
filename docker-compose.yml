@@ -30,6 +30,8 @@ services:
         condition: service_healthy
     expose:
       - "8000"
+    volumes:
+      - uploads:/app/app/uploads
 
   db:
     image: postgres:16
@@ -52,3 +54,4 @@ volumes:
   caddy_data:
   caddy_config:
   frontend_dist:
+  uploads:

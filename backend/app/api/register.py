@@ -47,6 +47,7 @@ async def register(registerForm: RegisterForm, db: Session = Depends(get_db)):
             account=registerForm.account,
             password_hash=registerForm.password1,
             is_verified=False,
+            last_seen=registerForm.last_seen / 1000,
         )
         db.add(user)
         db.commit()
@@ -59,8 +60,9 @@ async def register(registerForm: RegisterForm, db: Session = Depends(get_db)):
             ttl_seconds=settings.EMAIL_VERIFY_TTL_SECONDS,
         )
         send_verify_email(
-            to_email="1037092456@qq.com",
-            verify_url=f"{settings.SERVER_IP}:{settings.SERVER_PORT}/verify?token={token}",
+            to_email=registerForm.email,
+            verify_url=f"http://{settings.SERVER_IP}/api/verify?token={token}",
+            # verify_url=f"{settings.SERVER_IP}:{settings.SERVER_PORT}/api/verify?token={token}",
         )
     return RegisterRespond(
         ok=True, isAccRepeated=isAccRepeated, isEmlRepeated=isEmlRepeated

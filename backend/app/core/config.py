@@ -4,7 +4,7 @@ from typing import List
 
 class Settings(BaseSettings):
     # Server
-    SERVER_IP: str = "http://127.0.0.1"
+    SERVER_IP: str = "localhost"
     SERVER_PORT: str = "8000"
 
     # define the midware

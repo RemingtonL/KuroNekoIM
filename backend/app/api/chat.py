@@ -76,19 +76,10 @@ async def chat(chatReq: ChatReq, db: Session = Depends(get_db)):
         db.refresh(message)
         # pull the history
         chats = (
-            db.query(Group_Message)
-            .filter(
-                (
-                    (Group_Message.sender_id == chatReq.message.sender_id)
-                    & (Group_Message.group_id == chatReq.message.receiver_id)
-                )
-                | (
-                    (Group_Message.sender_id == chatReq.message.receiver_id)
-                    & (Group_Message.group_id == chatReq.message.sender_id)
-                )
+            db.query(Group_Message).filter(
+                Group_Message.group_id == chatReq.message.receiver_id
             )
-            .all()
-        )
+        ).all()
 
         chatContents = []
         for chat in chats:
@@ -155,20 +146,7 @@ async def history(
             .first()
             .group_id
         )
-        chats = (
-            db.query(Group_Message)
-            .filter(
-                (
-                    (Group_Message.sender_id == sender_id)
-                    & (Group_Message.group_id == group_id)
-                )
-                | (
-                    (Group_Message.sender_id == group_id)
-                    & (Group_Message.group_id == sender_id)
-                )
-            )
-            .all()
-        )
+        chats = db.query(Group_Message).filter(Group_Message.group_id == group_id).all()
         chatContents = []
         for chat in chats:
             chatContents.append(
@@ -209,7 +187,7 @@ async def upload_file(
                 break
             f.write(chunk)
 
-    url = f"{settings.SERVER_IP}:{settings.SERVER_PORT}/uploads/{stored}"
+    url = f"/uploads/{stored}"
     msg_type = "image" if file.content_type.startswith("image/") else "file"
     if not isGroupChat:
         message = Message(

@@ -6,6 +6,7 @@ class RegisterForm(BaseModel):
     password1: str
     password2: str
     account: str
+    last_seen: int
 
 
 class RegisterRespond(BaseModel):

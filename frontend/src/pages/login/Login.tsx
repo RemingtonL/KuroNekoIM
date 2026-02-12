@@ -32,7 +32,7 @@ export default function Login() {
   //process the login
   const handleChange = async (inputValue: InputValue) => {
     setInput(inputValue);
-    const res = await fetch(`http://${SERVER_IP}:${SERVER_PORT}/login`, {
+    const res = await fetch("/api/login", {
       //await 会在这里“停下来”，等服务器回应。
       method: "POST",
       headers: {

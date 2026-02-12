@@ -21,7 +21,7 @@ export default function Chat() {
   const SubMenu = Menu.SubMenu;
   const Sider = Layout.Sider;
   const Content = Layout.Content;
-  const groups = ["avemujica", "mygo"];
+  const groups = ["avemujica"];
 
   //who has login
   const isLogin = useLoginStatus((State) => State.loginInfo.isLogin);
@@ -33,7 +33,7 @@ export default function Chat() {
   const [onlineUsers, setOnlineUsers] = useState<string[]>();
   const onlineStatus = async () => {
     const seconds = new Date().getTime();
-    const url = new URL(`http://${SERVER_IP}:${SERVER_PORT}/online-status`);
+    const url = new URL(`/api/online-status`,window.location.origin);
     url.searchParams.set("time", String(seconds));
     if (name) {
       url.searchParams.set("name",name)
@@ -44,11 +44,10 @@ export default function Chat() {
     });
     const online_users: string[] = await res.json();
     setOnlineUsers(online_users);
-    console.log(name);
   };
   const onlineStatusUpdate = async () => {
     const seconds = new Date().getTime();
-    const url = new URL(`http://${SERVER_IP}:${SERVER_PORT}/online-update`);
+    const url = new URL(`/api/online-update`,window.location.origin);
     if (name) {
       url.searchParams.set("name", name);
       url.searchParams.set("time", String(seconds));
@@ -96,7 +95,7 @@ export default function Chat() {
   const [isGroupChat, setIsGroupChat] = useState(false); //to indicate if the selected chat is a group chat
   const onClickChat = async (user: string, isGroupChat: boolean) => {
     if (name) {
-      const url = new URL(`http://${SERVER_IP}:${SERVER_PORT}/chat/history`);
+      const url = new URL(`/api/chat/history`,window.location.origin);
       url.searchParams.set("name", name);
       url.searchParams.set("selectedChat", user);
       if (isGroupChat) {
@@ -104,7 +103,7 @@ export default function Chat() {
       } else {
         url.searchParams.set("isGroupChat", "false");
       }
-      const res = await fetch(url.toString(), {
+      const res = await fetch(url, {
         method: "get",
       });
 
@@ -139,7 +138,7 @@ export default function Chat() {
       content_type: null,
       file_name: null,
     };
-    const res = await fetch(`http://${SERVER_IP}:${SERVER_PORT}/chat`, {
+    const res = await fetch(`/api/chat`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ message: msg, isGroupChat: isGroupChat }),
@@ -152,7 +151,6 @@ export default function Chat() {
     }
   };
 
-  // console.log(onlineUsers)
   return (
     <>
       <Avatar style={{ position: "fixed", top: 20, right: 20 }}>
@@ -250,7 +248,7 @@ export default function Chat() {
                     <Avatar size={32}>{name}</Avatar>
                   </div>
                 ) : msg.sender === selectedChat.selectedName &&
-                  msg.receiver === name && // message sent by other people, or a group message
+                  msg.receiver === name && // message sent by other people
                   msg.msg_type === "text" ? (
                   <div className="message left" key={index}>
                     <Avatar size={32}>{selectedChat.selectedName}</Avatar>
@@ -286,13 +284,51 @@ export default function Chat() {
                     </div>
                     <Avatar size={32}>{name}</Avatar>
                   </div>
+                ) : msg.sender !==  name &&
+                  msg.receiver === selectedChat.selectedName && // message sent by group
+                  msg.msg_type === "text" ? (
+                  <div className="message left" key={index}>
+                    <Avatar size={32}>{msg.sender}</Avatar>
+                    <div className="bubble bubble-left">{msg.content}</div>
+                  </div>
+                ) : msg.sender !==  name &&
+                  msg.receiver === selectedChat.selectedName &&
+                  msg.msg_type === "image" &&
+                  msg.content ? (
+                  <div className="message left" key={index}>
+                    <Avatar size={32}>{msg.sender}</Avatar>
+                    <div className="bubble bubble-left">
+                      <img className="chat-img" src={msg.content} />
+                    </div>
+                  </div>
+                ) : msg.sender !==  name &&
+                  msg.receiver === selectedChat.selectedName &&
+                  msg.msg_type === "file" &&
+                  msg.content ? (
+                  <div className="message left" key={index}>
+                    <div className="bubble bubble-left">
+                      <a
+                        className="file-card"
+                        href={msg.content}
+                        target="_blank"
+                        rel="noreferrer"
+                      >
+                        <span className="file-icon">📎</span>
+                        <span className="file-name">
+                          {msg.file_name ?? "download file"}
+                        </span>
+                      </a>
+                    </div>
+                    <Avatar size={32}>{msg.sender}</Avatar>
+                  </div>
                 ) : null
-              )}
+              )
+              }
 
               <div className="chat-input-row">
                 <Upload
                   listType="picture-list"
-                  action={`http://${SERVER_IP}:${SERVER_PORT}/chat/upload`}
+                  action={`/api/chat/upload`}
                   multiple
                   showUploadList={false}
                   onChange={() => {

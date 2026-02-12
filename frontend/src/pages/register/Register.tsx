@@ -19,6 +19,7 @@ export default function Register() {
     password1: string;
     password2: string;
     account: string;
+    last_seen:number;
   }
   interface RegisterRespond {
     ok: boolean;
@@ -26,8 +27,10 @@ export default function Register() {
     isEmlRepeated: boolean;
   }
   const handleSubmit = async (inputValue: InputValue) => {
+    const seconds = new Date().getTime();
+    inputValue.last_seen = seconds
     setInput(inputValue);
-    const res = await fetch(`http://${SERVER_IP}:${SERVER_PORT}/register`, {
+    const res = await fetch(`/api/register`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(inputValue),
