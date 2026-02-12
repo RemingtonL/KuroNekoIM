@@ -4,12 +4,12 @@ from typing import List
 
 class Settings(BaseSettings):
     # Server
-    SERVER_IP: str = "localhost"
+    SERVER_IP: str = "57.181.28.198"
     SERVER_PORT: str = "8000"
 
     # define the midware
     ALLOW_ORIGINS: List[str] = [
-        "http://localhost:5173",
+        "http://57.181.28.198:5173",
         "http://127.0.0.1:5173",
     ]
 
